@@ -7,7 +7,7 @@ from tapo_control import build_command
 
 class SafetyTests(unittest.TestCase):
     def args(self, action, allow_write=False, confirm_host=None):
-        return argparse.Namespace(host="192.168.10.186", kasa=Path("kasa.exe"),
+        return argparse.Namespace(host="192.0.2.10", kasa=Path("kasa.exe"),
                                   action=action, allow_write=allow_write,
                                   confirm_host=confirm_host)
 
@@ -20,10 +20,10 @@ class SafetyTests(unittest.TestCase):
 
     def test_off_requires_matching_ip(self):
         with self.assertRaises(PermissionError):
-            build_command(self.args("off", True, "192.168.10.150"))
+            build_command(self.args("off", True, "192.0.2.11"))
 
     def test_explicit_write(self):
-        self.assertEqual(build_command(self.args("on", True, "192.168.10.186"))[-1], "on")
+        self.assertEqual(build_command(self.args("on", True, "192.0.2.10"))[-1], "on")
 
 
 if __name__ == "__main__":
