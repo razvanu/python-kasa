@@ -1,6 +1,8 @@
 # Tapo P115 TPAP v2 — companion controls
 
-The address `192.0.2.10` below is reserved for documentation (RFC 5737). Replace it with your own device IP.\n\nThis is an experimental companion to [python-kasa TPAP pull request #1592](https://github.com/python-kasa/python-kasa/pull/1592), not a replacement of that protocol implementation.
+The address `192.0.2.10` below is reserved for documentation (RFC 5737). Replace it with your own device IP.
+
+This is an experimental companion to [python-kasa TPAP pull request #1592](https://github.com/python-kasa/python-kasa/pull/1592), not a replacement of that protocol implementation.
 
 ## Verified
 - Tapo P115 `192.0.2.10`, firmware 1.4.0: read-only `kasa state` **works** with PR #1592 on Windows 11.
