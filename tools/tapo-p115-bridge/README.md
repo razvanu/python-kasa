@@ -1,10 +1,10 @@
 # Tapo P115 TPAP v2 — companion controls
 
-This is an experimental companion to [python-kasa TPAP pull request #1592](https://github.com/python-kasa/python-kasa/pull/1592), not a replacement of that protocol implementation.
+The address `192.0.2.10` below is reserved for documentation (RFC 5737). Replace it with your own device IP.\n\nThis is an experimental companion to [python-kasa TPAP pull request #1592](https://github.com/python-kasa/python-kasa/pull/1592), not a replacement of that protocol implementation.
 
 ## Verified
-- Tapo P115 `192.168.10.186`, firmware 1.4.0: read-only `kasa state` **works** with PR #1592 on Windows 11.
-- Tapo P115 `192.168.10.150`: not yet tested using the experimental CLI.
+- Tapo P115 `192.0.2.10`, firmware 1.4.0: read-only `kasa state` **works** with PR #1592 on Windows 11.
+- Tapo P115 firmware 1.4.8: read-only state **also works** with PR #1592 (tested separately).
 - Relay ON/OFF: implemented as explicit opt-in operations, **not yet hardware-tested**.
 
 ## Install / run
@@ -19,16 +19,16 @@ $env:KASA_PASSWORD = Read-Host "Tapo password"
 $python = "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe"
 
 # Read state; no relay operation
-& $python .\tapo_control.py --host 192.168.10.186 status
+& $python .\tapo_control.py --host 192.0.2.10 status
 
 # Simulate an ON operation without contacting the plug
-& $python .\tapo_control.py --host 192.168.10.186 --allow-write --confirm-host 192.168.10.186 --dry-run on
+& $python .\tapo_control.py --host 192.0.2.10 --allow-write --confirm-host 192.0.2.10 --dry-run on
 
 # Real ON, only when explicitly intended
-& $python .\tapo_control.py --host 192.168.10.186 --allow-write --confirm-host 192.168.10.186 on
+& $python .\tapo_control.py --host 192.0.2.10 --allow-write --confirm-host 192.0.2.10 on
 
-# Real OFF: WARNING, cuts mains power to Tesla AC
-& $python .\tapo_control.py --host 192.168.10.186 --allow-write --confirm-host 192.168.10.186 off
+# Real OFF: WARNING, cuts mains power to air conditioner
+& $python .\tapo_control.py --host 192.0.2.10 --allow-write --confirm-host 192.0.2.10 off
 
 Remove-Item Env:\KASA_USERNAME,Env:\KASA_PASSWORD
 ```
@@ -40,7 +40,7 @@ Never commit credentials, tokens, MAC addresses, full diagnostic logs, or secret
 - `on` and `off` require both `--allow-write` and `--confirm-host` exactly matching the target IP.
 - `--dry-run` doesn't contact the plug.
 - No background service is installed.
-- **Use Broadlink IR for normal Tesla AC control; do not power-cycle the compressor by cutting the smart plug.**
+- **Use Broadlink IR for normal air conditioner control; do not power-cycle the compressor by cutting the smart plug.**
 - MQTT/Home Assistant is a later phase, not part of this module.
 
 Run local unit tests using `python -m unittest discover -s tests -v`.
