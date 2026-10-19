@@ -12,7 +12,7 @@ class SafetyTests(unittest.TestCase):
                                   confirm_host=confirm_host)
 
     def test_read_without_confirmation(self):
-        self.assertEqual(build_command(self.args("status"))[-1], "status")
+        self.assertEqual(build_command(self.args("status"))[-1], "state")
 
     def test_on_requires_write_flag(self):
         with self.assertRaises(PermissionError):
