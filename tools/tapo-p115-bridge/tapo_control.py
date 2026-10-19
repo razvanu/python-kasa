@@ -28,7 +28,7 @@ def build_command(args):
     if args.action in ("on", "off"):
         if not args.allow_write or args.confirm_host != ip:
             raise PermissionError("Write requires --allow-write and --confirm-host matching IP")
-    return [str(args.kasa), "--host", ip, args.action]
+    return [str(args.kasa), "--host", ip, "state" if args.action == "status" else args.action]
 
 
 def main(argv=None):
