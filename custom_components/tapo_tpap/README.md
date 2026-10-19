@@ -8,12 +8,11 @@ SHA-pinned experimental TPAP branch from
 
 | Room | IP | Hardware | Firmware | Local read |
 |---|---|---|---|---|
-| AC Dormitor Tesla | `192.168.10.186` | P115 EU v1.0 | 1.4.0 Build 251020 | PASS |
-| AC Sufragerie | `192.168.10.150` | P115 EU v1.0 | 1.4.8 Build 260804 | PASS |
+| P115 A | `192.0.2.10` | P115 EU v1.0 | 1.4.0 Build 251020 | PASS |
+| P115 B | `192.0.2.11` | P115 EU v1.0 | 1.4.8 Build 260804 | PASS |
 
 Both devices expose state, current consumption (W), voltage (V), current
-(A), today's and this month's energy (kWh). The P115 in the living room
-reported **887 W, 235.6 V, 3.85 A** in the verified read-only test.
+(A), today's and this month's energy (kWh). One P115 reported live electrical measurements in the read-only test.
 
 **No actual relay ON/OFF command was sent during verification.**
 
@@ -59,5 +58,5 @@ installation on the production HA server.
 
 ### AC safety
 
-For Tesla AC, use Broadlink IR for normal air-conditioner ON/OFF.
+For air conditioner, use Broadlink IR for normal air-conditioner ON/OFF.
 Do **not** routinely cut the AC mains power at its P115 relay.
