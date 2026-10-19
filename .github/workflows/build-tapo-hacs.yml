@@ -1,0 +1,69 @@
+name: Build isolated HACS TPAP preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/tapo-p115-controls]
+    paths:
+      - 'tools/build_vendor_kasa.py'
+      - 'custom_components/tapo_tpap/**'
+      - '.github/workflows/build-tapo-hacs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout integration source
+        uses: actions/checkout@v4
+
+      - name: Checkout exact tested TPAP implementation
+        uses: actions/checkout@v4
+        with:
+          repository: ZeliardM/python-kasa
+          ref: e7084472972f08f2e2235b342f3964aedbfaeb3b
+          path: tpap-source
+          persist-credentials: false
+
+      - name: Prepare Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Isolate TPAP under a private Python namespace
+        run: |
+          python tools/build_vendor_kasa.py --source tpap-source
+          python -m compileall -q custom_components/tapo_tpap
+          python -m pip install --quiet aiohttp asyncclick cryptography mashumaro ecdsa passlib
+
+      - name: Import isolated TPAP without importing Home Assistant
+        run: |
+          python - <<'PY'
+          import pathlib, sys, types
+          for name, loc in [
+              ("custom_components", "custom_components"),
+              ("custom_components.tapo_tpap", "custom_components/tapo_tpap"),
+              ("custom_components.tapo_tpap._vendor", "custom_components/tapo_tpap/_vendor")
+          ]:
+              module = types.ModuleType(name)
+              module.__path__ = [str(pathlib.Path(loc).resolve())]
+              sys.modules[name] = module
+          from custom_components.tapo_tpap._vendor.kasa import Discover, Credentials
+          assert Discover is not None and Credentials is not None
+          assert "kasa" not in sys.modules, "Shared kasa namespace was touched"
+          print("Isolated TPAP imported successfully")
+          PY
+
+      - name: Build HACS preview archive
+        run: |
+          mkdir -p dist
+          zip -q -r dist/tapo-tpap-hacs-preview.zip custom_components/tapo_tpap hacs.json
+          echo "Preview only: NOT yet hardware-tested from Home Assistant" > dist/STATUS.txt
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tapo-tpap-hacs-preview
+          path: dist/
