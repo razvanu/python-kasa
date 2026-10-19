@@ -1,34 +1,63 @@
-# Experimental Tapo P115 HACS integration
+# Tapo P115 TPAP v2 — experimental Home Assistant integration
 
-**Status: prototype — NOT YET READY FOR INSTALLATION.** It has not been tested on Home Assistant. No hardware control was performed.
+## Compatibility validation (19 October 2026)
 
-- Separate integration domain `tapo_tpap`, independent from built-in `tplink`.
-- Intended for P115 at `192.168.10.186` (fw 1.4.0) and `192.168.10.150` (fw 1.4.8).
-- Adds a config entry per plug, power/voltage/current/daily/monthly sensors, and a switch disabled by default.
-- The only confirmed TPAP communication is **Windows kasa CLI read-only at .186**.
-- Firmware 1.4.8 on .150 has **NOT** been tested with the experimental transport.
-- Does not install or override the global `python-kasa` dependency.
+Both plugs have now been **read successfully on Windows 11** using the
+SHA-pinned experimental TPAP branch from
+[python-kasa PR #1592](https://github.com/python-kasa/python-kasa/pull/1592).
 
-## Blocking issue
+| Room | IP | Hardware | Firmware | Local read |
+|---|---|---|---|---|
+| AC Dormitor Tesla | `192.168.10.186` | P115 EU v1.0 | 1.4.0 Build 251020 | PASS |
+| AC Sufragerie | `192.168.10.150` | P115 EU v1.0 | 1.4.8 Build 260804 | PASS |
 
-The official Home Assistant `python-kasa` does not support TPAP v2 for these plugs.
-This prototype will **not** load the P115 entries until a compatible isolated
-TPAP library can be packaged. Installing
-`python-kasa @ git+https://github.com/ZeliardM/python-kasa.git@...` from
-`manifest.json` would overwrite HA's **shared** `kasa` library and could
-affect the existing Kasa HS100/HS110 integrations. We deliberately do not do it.
+Both devices expose state, current consumption (W), voltage (V), current
+(A), today's and this month's energy (kWh). The P115 in the living room
+reported **887 W, 235.6 V, 3.85 A** in the verified read-only test.
 
-Upstream TPAP work: https://github.com/python-kasa/python-kasa/pull/1592
+**No actual relay ON/OFF command was sent during verification.**
 
-## Release criteria
+## Architecture
 
-1. Isolate TPAP implementation from HA's shared kasa Python package.
-2. Prove read-only P115 .186 and .150 connections, firmware versions 1.4.0/1.4.8.
-3. Verify HA 2026.10.1 startup, config flow, sensors, error recovery.
-4. Explicitly opt-in and hardware-test relay writes on non-critical loads.
-5. Publish as a **dedicated** HACS repository (not inside full python-kasa fork).
+- Standalone `tapo_tpap` integration domain, separate from HA's built-in
+  `tplink` integration.
+- No MQTT broker, Windows process or LXC is required for runtime operation.
+- Individual config entries for both P115 IP addresses.
+- Polling coordinator with per-device sensors and opt-in outlet relay entity
+  (relay switch is **disabled by default**).
+- The experimental TPAP code is **vendored under a private package namespace**
+  `custom_components.tapo_tpap._vendor.kasa`. No global `kasa` replacement.
+- Vendored source built by GitHub Actions from an exact upstream commit
+  `e7084472972f08f2e2235b342f3964aedbfaeb3b`, preserving
+  original GPL-3.0-or-later license attribution.
+- Dependency requirements list only supplementary crypto libraries, not
+  `python-kasa` itself.
 
-## Normal Tesla operation
+### Build pipeline
 
-Do not cut mains power to the Tesla AC with the P115 switch during compressor operation.
-Use the existing Broadlink IR controls; the P115 is for telemetry.
+[Preview build workflow](https://github.com/razvanu/python-kasa/actions/workflows/build-tapo-hacs.yml)
+
+The pipeline compiles all vendored modules and verifies a smoke import that
+does **not** load or modify the globally installed `kasa` module.
+The resulting `tapo-tpap-hacs-preview.zip` is a **preview artifact**,
+not yet a supported HACS release.
+
+## Important: not yet tested inside Home Assistant
+
+A successful Python import is **not** proof that config flow, HA entity
+registries, polling and writes work as expected under Home Assistant OS
+2026.10.1. A staged Home Assistant test is still required before recommending
+installation on the production HA server.
+
+### Release criteria
+
+1. Run an HA 2026.10.1 integration test using the generated isolated vendor.
+2. Confirm sensors report correct units and device state for each firmware.
+3. Exercise write enable/disable on a non-critical appliance only.
+4. Package and publish as a standalone HACS repository, with downloadable
+   release (current repo is still a fork of python-kasa).
+
+### AC safety
+
+For Tesla AC, use Broadlink IR for normal air-conditioner ON/OFF.
+Do **not** routinely cut the AC mains power at its P115 relay.
